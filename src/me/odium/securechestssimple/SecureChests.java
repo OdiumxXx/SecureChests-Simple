@@ -24,6 +24,7 @@ public class SecureChests extends JavaPlugin {
 	private final SecureChestsPlayerListener playerListener = new SecureChestsPlayerListener(this);
 	private final SecureChestsBlockListener blockListener = new SecureChestsBlockListener(this);
 	private final SecureChestsRedstoneListener redstoneListener = new SecureChestsRedstoneListener(this);
+	private final SecureChestsExplosionListener explosionListener = new SecureChestsExplosionListener(this);
 
 	//Define the logger
 	Logger log = Logger.getLogger("Minecraft");
@@ -48,6 +49,7 @@ public class SecureChests extends JavaPlugin {
 	public Map<Integer, Boolean> blockStatus = new HashMap<Integer, Boolean>();
 	public Map<Player, Integer> scCmd = new HashMap<Player, Integer>();
 	public Map<Player, String> scAList = new HashMap<Player, String>();	
+	public Map<Integer, Boolean> blockExplosion = new HashMap<Integer, Boolean>();
 
 	//begin chest storage config commands
 
@@ -105,20 +107,20 @@ public class SecureChests extends JavaPlugin {
 	
 
 	public void displayHelp(Player player) {
-		player.sendMessage(ChatColor.GOLD + "----- Secure Chests " + getDescription().getVersion() + " -----");
+		player.sendMessage(ChatColor.GOLD + "[ "+ChatColor.GREEN+"Secure Chests (Simple) " + getDescription().getVersion() + ChatColor.GOLD+" ]");
 		if (player.hasPermission("securechests.lock")) {
-			player.sendMessage(ChatColor.WHITE + "/sc lock (/lock)" + ChatColor.GRAY + " - lock your chests/furnaces/doors/etc...");
-			player.sendMessage(ChatColor.WHITE + "/sc unlock (/unlock)" + ChatColor.GRAY + " - unlock your chests/furnaces/doors/etc...");
-			player.sendMessage(ChatColor.WHITE + "/sc add username" + ChatColor.GRAY + " - Add a user to container/door access list");
-			player.sendMessage(ChatColor.WHITE + "/sc deny username" + ChatColor.GRAY + " - Add a user to chest container/door list (will override global access list)");
-			player.sendMessage(ChatColor.WHITE + "/sc remove username" + ChatColor.GRAY + " - remove a user from container/door access list");
-			player.sendMessage(ChatColor.WHITE + "/sc gadd username" + ChatColor.GRAY + " - Add a user to your global allow");
-			player.sendMessage(ChatColor.WHITE + "/sc gremove username" + ChatColor.GRAY + " - remove user from global allow list");
+			player.sendMessage(ChatColor.GOLD + " /lock" + ChatColor.WHITE + " - Lock containers/doors etc");
+			player.sendMessage(ChatColor.GOLD + " /unlock" + ChatColor.WHITE + " - Unlock your containers/doors etc");
+			player.sendMessage(ChatColor.GOLD + " /sc add player" + ChatColor.WHITE + " - Add user to access list");
+			player.sendMessage(ChatColor.GOLD + " /sc deny player" + ChatColor.WHITE + " - Add user to deny list");
+			player.sendMessage(ChatColor.GOLD + " /sc remove player" + ChatColor.WHITE + " - Remove user from access list");
+			player.sendMessage(ChatColor.GOLD + " /sc gadd player" + ChatColor.WHITE + " - Add user to your global access list");
+			player.sendMessage(ChatColor.GOLD + " /sc gremove player" + ChatColor.WHITE + " - Remove user from global access list");
 		} else {
-			player.sendMessage(ChatColor.RED + "You dont have access to lock your chests! :(");
+			player.sendMessage(ChatColor.RED + "You don't have permission");
 		}
 		if (player.hasPermission("securechests.reload")) {
-			player.sendMessage(ChatColor.WHITE + "/sc reload" + ChatColor.GRAY + " - reload config files");
+			player.sendMessage(ChatColor.GOLD + " /sc reload" + ChatColor.WHITE + " - reload config files");
 		}
 	}
 
@@ -127,6 +129,7 @@ public class SecureChests extends JavaPlugin {
 		pm.registerEvents(blockListener, this);
 		pm.registerEvents(playerListener, this);
 		pm.registerEvents(redstoneListener, this);
+		pm.registerEvents(explosionListener, this);
 		try{     // if config.yml is missing from package, create your own.
 			FileConfiguration config = getConfig();
 			if(!config.contains("Furnace")){
