@@ -1,6 +1,6 @@
 name: SecureChests-Simple
 main: me.odium.securechestssimple.SecureChests
-version: 0.2
+version: 0.2.1
 author: HAklowner - Simple Ver Maintained by Odium
 website: http://dev.bukkit.org/server-mods/secure-chests
 description: SecureChests - Simple chest locking!

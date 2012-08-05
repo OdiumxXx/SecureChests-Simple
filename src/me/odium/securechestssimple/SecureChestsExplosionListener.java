@@ -83,7 +83,6 @@ public class SecureChestsExplosionListener implements Listener {
         blockList.remove(i);
         i--;
         len--;
-        plugin.log.info("Saving Door Block(Below)");  
       }
     }
   }
