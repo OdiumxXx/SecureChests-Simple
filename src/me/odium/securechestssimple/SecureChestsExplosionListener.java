@@ -31,52 +31,53 @@ public class SecureChestsExplosionListener implements Listener {
 
       if (SecureChests.BLOCK_LIST.containsKey(bId)) {
 
+
         // IF BLOCK IS DOOR SELECT BOTTOM HALF
         if(b.getTypeId() == 64) {
           Door d = (Door)b.getState().getData();          
           if (d.isTopHalf()) { 
             blockLoc = b.getLocation().subtract(0,1,0);
           }
-        }        
+        }    
 
         Lock lock = new Lock(plugin);
         lock.setLocation(blockLoc);
+
+        if(bId == 54) { //do double chest location corrections
+          Location ccN = b.getLocation();
+          Location ccE = b.getLocation();
+          Location ccS = b.getLocation();
+          Location ccW = b.getLocation();
+
+          ccN = ccN.subtract(0,0,1);
+          ccE = ccE.subtract(1,0,0);
+          ccS = ccS.add(0,0,1);
+          ccW = ccW.add(1,0,0);
+
+          //Boolean dchest = false;
+          if (ccN.getBlock().getTypeId() == 54) {
+            blockLoc = blockLoc.subtract(0, 0, 1);
+            //    dchest = true;
+          } else if (ccE.getBlock().getTypeId() == 54) {
+            blockLoc = blockLoc.subtract(1, 0, 0);
+            //    dchest = true;
+          } else if (ccS.getBlock().getTypeId() == 54) {
+            //    dchest = true;
+          } else if (ccW.getBlock().getTypeId() == 54) {
+            //    dchest = true;
+          }        
+          lock.setLocation(blockLoc);
+        } //END Chest location corrections.
 
         // IF THING IS LOCKED REMOVE FROM EXPLOSION DAMAGE LIST
         if(lock.isLocked()) {
           blockList.remove(i);
           i--;
           len--;
-          // IF BLOCK IS CHEST
-          if (bId == 54) {
-            Location ccN = b.getLocation();
-            Location ccE = b.getLocation();
-            Location ccS = b.getLocation();
-            Location ccW = b.getLocation();
-            ccN = ccN.subtract(0,0,1);
-            ccE = ccE.subtract(1,0,0);
-            ccS = ccS.add(0,0,1);
-            ccW = ccW.add(1,0,0);
-            // IF DOUBLE CHEST, REMOVE BOTH HALVES FROM EXPLOSIN DAMAGE LIST          
-            if (ccN.getBlock().getTypeId() == 54) {
-              blockList.remove(i);
-              i--;
-              len--;            
-            } else if (ccE.getBlock().getTypeId() == 54) {
-              blockList.remove(i);
-              i--;
-              len--;            
-            } else if (ccS.getBlock().getTypeId() == 54) {
-              blockList.remove(i);
-              i--;
-              len--;            
-            } else if (ccW.getBlock().getTypeId() == 54) {
-              blockList.remove(i);
-              i--;
-              len--;   
-            } 
-          }
-        } 
+        }
+
+       
+
       }
       // IF BLOCK ABOVE IS A DOOR, REMOVE FROM EXPLOSION DAMAGE LIST
       if (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64) {
@@ -87,4 +88,42 @@ public class SecureChestsExplosionListener implements Listener {
     }
   }
 }
+ 
+  
+          
+          
+          
+//          // IF BLOCK IS CHEST
+//          if (bId == 54) {
+//            Location ccN = b.getLocation();
+//            Location ccE = b.getLocation();
+//            Location ccS = b.getLocation();
+//            Location ccW = b.getLocation();
+//            ccN = ccN.subtract(0,0,1);
+//            ccE = ccE.subtract(1,0,0);
+//            ccS = ccS.add(0,0,1);
+//            ccW = ccW.add(1,0,0);
+//            // IF DOUBLE CHEST, REMOVE BOTH HALVES FROM EXPLOSIN DAMAGE LIST          
+//            if (ccN.getBlock().getTypeId() == 54) {
+//              blockList.remove(i);
+//              
+//              i--;
+//              len--;            
+//            } else if (ccE.getBlock().getTypeId() == 54) {
+//              blockList.remove(i);
+//              i--;
+//              len--;            
+//            } else if (ccS.getBlock().getTypeId() == 54) {
+//              blockList.remove(i);
+//              i--;
+//              len--;            
+//            } else if (ccW.getBlock().getTypeId() == 54) {
+//              blockList.remove(i);
+//              i--;
+//              len--;   
+//            } 
+//          }
+
+    
+    
 

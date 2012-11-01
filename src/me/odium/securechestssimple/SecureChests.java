@@ -44,6 +44,7 @@ public class SecureChests extends JavaPlugin {
 		result.put(107, "fence gate");
 		result.put(117, "potion stand");
 		result.put(130, "enderchest");
+		result.put(389, "frame");
 		return Collections.unmodifiableMap(result);	
 	}
 	
@@ -157,6 +158,9 @@ public class SecureChests extends JavaPlugin {
 	     if(!config.contains("EnderChest")){
 	        config.set("EnderChest", true);
 	      }  
+       if(!config.contains("Frame")){
+         config.set("Frame", true);
+       }  
 			saveConfig();
 		}catch(Exception e1){
 			e1.printStackTrace();
@@ -192,7 +196,8 @@ public class SecureChests extends JavaPlugin {
 			blockStatus.put(117, true);
 		if(getConfig().getBoolean("EnderChest"))
       blockStatus.put(130, true);
-		
+		if(getConfig().getBoolean("Frame"))
+      blockStatus.put(389, true);
 		// log initilization and continue
 		log.info("[" + getDescription().getName() + "] " + getDescription().getVersion() + " enabled.");    
 	}
@@ -225,6 +230,8 @@ public class SecureChests extends JavaPlugin {
 			blockStatus.put(117, true);
 	  if(getConfig().getBoolean("EnderChest"))
       blockStatus.put(130, true);
+	  if(getConfig().getBoolean("Frame"))
+      blockStatus.put(389, true);
     	log.info("[" + getDescription().getName() + "] Reload complete");
 	}
 	
