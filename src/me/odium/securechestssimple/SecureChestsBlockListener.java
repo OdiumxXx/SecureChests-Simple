@@ -10,6 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.material.Door;
 
 public class SecureChestsBlockListener implements Listener {
@@ -167,12 +168,12 @@ public class SecureChestsBlockListener implements Listener {
   }
 
   @EventHandler(priority = EventPriority.LOW)  
-  public void onPaintingBreak(final HangingBreakByEntityEvent event) {    
+  public void onPaintingBreakEntity(final HangingBreakByEntityEvent event) {    
     // IF A PLAYER BROKE AN ITEM FRAME 
     if (event.getRemover().getType().equals(EntityType.PLAYER) && event.getEntity().getType().equals(EntityType.ITEM_FRAME)) {
       Player player;
       player = (Player) event.getRemover();
-      
+
       Lock lock = new Lock(plugin);
       Location blockLoc = event.getEntity().getLocation();
       String blockName = "Item Frame";
@@ -263,5 +264,20 @@ public class SecureChestsBlockListener implements Listener {
       }
     }
   }//end onPlayerInteract();
+
+  // Disallow a locked painting breaking for any other reason (block behind missing, or explosion)  
+  @EventHandler(priority = EventPriority.LOW)  
+  public void onPaintingBreak(final HangingBreakEvent event) {
+    if (event.getEntity().getType().equals(EntityType.ITEM_FRAME)) {
+
+      Lock lock = new Lock(plugin);
+      Location blockLoc = event.getEntity().getLocation();
+      lock.setLocation(blockLoc);
+
+      if(lock.isLocked()) {
+        event.setCancelled(true);
+      }
+    }
+  }
 
 }

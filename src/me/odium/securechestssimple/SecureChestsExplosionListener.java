@@ -76,23 +76,31 @@ public class SecureChestsExplosionListener implements Listener {
           len--;
         }
 
-       
+
 
       }
-      // IF BLOCK ABOVE IS A DOOR, REMOVE FROM EXPLOSION DAMAGE LIST
+      // IF BLOCK ABOVE IS A DOOR
       if (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64) {
-        blockList.remove(i);
-        i--;
-        len--;
-      }
+
+        Lock lock = new Lock(plugin);
+        lock.setLocation(b.getLocation().add(0,1,0)); // set the location of the lock to the door which is above the selected block
+
+        if(lock.isLocked()) { // if the door above the selected block is locked
+          blockList.remove(i); // remove the block from explosion list
+          i--;
+          len--;
+        }
+      }     
+
+
     }
   }
 }
- 
-  
-          
-          
-          
+
+
+
+
+
 //          // IF BLOCK IS CHEST
 //          if (bId == 54) {
 //            Location ccN = b.getLocation();
@@ -124,6 +132,6 @@ public class SecureChestsExplosionListener implements Listener {
 //            } 
 //          }
 
-    
-    
+
+
 

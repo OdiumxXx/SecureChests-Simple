@@ -1,6 +1,6 @@
 name: SecureChests-Simple
 main: me.odium.securechestssimple.SecureChests
-version: 0.2.2
+version: 0.2.3
 author: HAklowner - Simple Ver Maintained by Odium
 description: SecureChests Simple - A less bloated alternative
 commands:
