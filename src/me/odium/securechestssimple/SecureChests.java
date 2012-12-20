@@ -2,6 +2,7 @@ package me.odium.securechestssimple;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,35 +54,72 @@ public class SecureChests extends JavaPlugin {
 	public Map<Player, String> scAList = new HashMap<Player, String>();	
 	public Map<Integer, Boolean> blockExplosion = new HashMap<Integer, Boolean>();
 
+	
+	
+//Custom Config  
+ private FileConfiguration StorageConfig = null;
+ private File StorageConfigFile = null;
+
+ public void reloadStorageConfig() {
+   if (StorageConfigFile == null) {
+     StorageConfigFile = new File(getDataFolder(), "Storage.yml");
+   }
+   StorageConfig = YamlConfiguration.loadConfiguration(StorageConfigFile);
+   // Look for defaults in the jar
+   InputStream defConfigStream = getResource("Storage.yml");
+   if (defConfigStream != null) {
+     YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+     StorageConfig.setDefaults(defConfig);
+   }
+ }
+ 
+ public FileConfiguration getStorageConfig() {
+   if (StorageConfig == null) {
+     reloadStorageConfig();
+   }
+   return StorageConfig;
+ }
+ 
+ public void saveStorageConfig() {
+   if (StorageConfig == null || StorageConfigFile == null) {
+     return;
+   }
+   try {
+     StorageConfig.save(StorageConfigFile);
+   } catch (IOException ex) {
+     Logger.getLogger(JavaPlugin.class.getName()).log(Level.SEVERE, "Could not save config to " + StorageConfigFile, ex);
+   }
+ }
+ // End Custom Config
+	
 	//begin chest storage config commands
-
-	private FileConfiguration storage = null;
-	private File storageConfFile = new File("plugins/SecureChests/", "storage.yml");
-
-	public FileConfiguration getStorageConfig() {
-		if (storage == null) {
-			reloadStorageConfig();
-		}
-		return storage;
-	}
-
-	public void reloadStorageConfig() {
-		storage = YamlConfiguration.loadConfiguration(storageConfFile);
-	}
-	public void saveStorageConfig() {
-		try {
-			storage.save(storageConfFile);
-		} catch(IOException ex) {
-			Logger.getLogger(JavaPlugin.class.getName()).log(Level.SEVERE, "Could not save config to " + storageConfFile, ex);
-		}
-	}
+//
+//	private FileConfiguration storage = null;
+//	private File storageConfFile = new File(getDataFolder().getAbsolutePath()+File.separator, "storage.yml");
+//		public FileConfiguration getStorageConfig() {
+//		if (storage == null) {
+//			reloadStorageConfig();
+//		}
+//		return storage;
+//	}
+//
+//	public void reloadStorageConfig() {
+//		storage = YamlConfiguration.loadConfiguration(storageConfFile);
+//	}
+//	public void saveStorageConfig() {
+//		try {
+//			storage.save(storageConfFile);
+//		} catch(IOException ex) {
+//			Logger.getLogger(JavaPlugin.class.getName()).log(Level.SEVERE, "Could not save config to " + storageConfFile, ex);
+//		}
+//	}
 
 	//end chest storage config commands
 
 	//begin player global access list config commands
 
 	private FileConfiguration aList = null;
-	private File aListConfFile = new File("plugins/SecureChests/", "accesslist.yml");
+	private File aListConfFile = new File(getDataFolder(), "accesslist.yml");
 
 	public FileConfiguration getAListConfig() {
 		if (aList == null) {
