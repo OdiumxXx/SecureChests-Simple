@@ -135,18 +135,22 @@ public class SecureChestsBlockListener implements Listener {
 
       else if(b.getTypeId() == 64) { //make sure block click is a DOOR
         if (b.getRelative(BlockFace.DOWN).getTypeId() == 64) {
-            blockLoc = blockLoc.subtract(0,1,0);
+          blockLoc = blockLoc.subtract(0,1,0);
         }
-    }
-    // End Door Corrections
-      
-      
+      }
+      // End Door Corrections
 
 
 
-      String blockName = SecureChests.BLOCK_LIST.get(b.getTypeId());
+
       //get name AFTER position corrections!
+      String blockName = SecureChests.BLOCK_LIST.get(b.getTypeId());
 
+      // IF THE BLOCK IS NOT IN BLOCK_LIST IT INDICATES THAT A BLOCK BELOW A DOOR IS BEING BROKEN, THUS WE RENAME BLOCKNAME TO BE 'DOOR'
+      if (!SecureChests.BLOCK_LIST.containsKey(b.getTypeId())) {
+        blockName = "door";
+      }
+      
       Lock lock = new Lock(plugin);
       lock.setLocation(blockLoc);
 
@@ -252,7 +256,7 @@ public class SecureChestsBlockListener implements Listener {
           return;
 
         } else {
-          plugin.displayMessage(player, "Can not open " + blockName + " owned by " + owner + ".");
+          plugin.displayMessage(player, "Can not break " + blockName + " owned by " + owner + ".");
           event.setCancelled(true);
           return;
         }
