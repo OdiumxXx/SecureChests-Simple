@@ -4,11 +4,11 @@ import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.material.Door;
 
 public class SecureChestsExplosionListener implements Listener {
 
@@ -32,11 +32,12 @@ public class SecureChestsExplosionListener implements Listener {
       if (SecureChests.BLOCK_LIST.containsKey(bId)) {
 
 
+
+
         // IF BLOCK IS DOOR SELECT BOTTOM HALF
         if(b.getTypeId() == 64) {
-          Door d = (Door)b.getState().getData();          
-          if (d.isTopHalf()) { 
-            blockLoc = b.getLocation().subtract(0,1,0);
+          if (b.getRelative(BlockFace.DOWN).getTypeId() == 64) {
+            blockLoc = blockLoc.subtract(0,1,0);
           }
         }    
 

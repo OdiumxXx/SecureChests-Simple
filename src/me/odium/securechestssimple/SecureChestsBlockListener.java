@@ -2,6 +2,7 @@ package me.odium.securechestssimple;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -11,7 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
-import org.bukkit.material.Door;
 
 public class SecureChestsBlockListener implements Listener {
 
@@ -127,18 +127,22 @@ public class SecureChestsBlockListener implements Listener {
         }
       } //END Chest location corrections.
 
+
       //Start Door Corrections
-      if (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64) {
+      if (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64) { // if block above the effected block is a door
         blockLoc = blockLoc.add(0,1,0);
       }
 
       else if(b.getTypeId() == 64) { //make sure block click is a DOOR
-        Door d = (Door)b.getState().getData();
-
-        if (d.isTopHalf()) { //You clicked on the top part of the door! correct location to reflect bottom part
-          blockLoc = blockLoc.subtract(0,1,0);
+        if (b.getRelative(BlockFace.DOWN).getTypeId() == 64) {
+            blockLoc = blockLoc.subtract(0,1,0);
         }
-      }//End Door Corrections
+    }
+    // End Door Corrections
+      
+      
+
+
 
       String blockName = SecureChests.BLOCK_LIST.get(b.getTypeId());
       //get name AFTER position corrections!

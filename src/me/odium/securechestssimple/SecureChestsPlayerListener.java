@@ -2,6 +2,7 @@ package me.odium.securechestssimple;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -9,7 +10,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.material.Door;
 
 public class SecureChestsPlayerListener implements Listener{
 	
@@ -62,15 +62,13 @@ public class SecureChestsPlayerListener implements Listener{
                 }
         	} //END Chest location corrections.
         	
-        	//Start Door Corrections
-            else if(b.getTypeId() == 64) { //make sure block click is a DOOR
-    			
-    			Door d = (Door)b.getState().getData();
-    			
-    			if (d.isTopHalf()) { //You clicked on the top part of the door! correct location to reflect bottom part
-    				blockLoc = blockLoc.subtract(0,1,0);
-    			}
-            }//End Door Corrections
+       // Start Door Corrections
+          else if(b.getTypeId() == 64) { //make sure block click is a DOOR
+              if (b.getRelative(BlockFace.DOWN).getTypeId() == 64) {
+                  blockLoc = blockLoc.subtract(0,1,0);
+              }
+          }
+          // End Door Corrections
         	
         	Lock lock = new Lock(plugin);
         	lock.setLocation(blockLoc);
