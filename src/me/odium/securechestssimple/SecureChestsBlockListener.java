@@ -86,6 +86,41 @@ public class SecureChestsBlockListener implements Listener {
         plugin.displayMessage(player, "Unable to modify chest owned by ".concat(lockname));
         event.setCancelled(true);
       }
+      // IF PLACING HOPPER
+    } else if (b.getTypeId() == 154) {
+      Player player = event.getPlayer();      
+      Location Chest_Loc_UP = b.getLocation().add(0, 1, 0);      
+      Location Chest_Loc_DOWN = b.getLocation().subtract(0, 1, 0);
+
+      // IF BLOCK ABOVE IS IN BLOCKLIST     
+      if(SecureChests.BLOCK_LIST.containsKey(Chest_Loc_UP.getBlock().getTypeId()) && plugin.blockStatus.get(Chest_Loc_UP.getBlock().getTypeId())) {
+        plugin.log.info("block above is container");
+        String Chest_Loc_Locked = Chest_Loc_UP.getWorld().getName() + "." + Chest_Loc_UP.getBlockX() + "_" + Chest_Loc_UP.getBlockY() + "_" + Chest_Loc_UP.getBlockZ();
+        String lockname = plugin.getStorageConfig().getString(Chest_Loc_Locked.concat(".owner"));
+        // IF CHEST IS LOCKED        
+        if (lockname != null && !lockname.equalsIgnoreCase(player.getName())) {
+          plugin.log.info("block above is locked");
+          String blockName = SecureChests.BLOCK_LIST.get(Chest_Loc_UP.getBlock().getTypeId());
+          event.setCancelled(true);
+          plugin.displayMessage(player, "Cannot place hopper beneath "+lockname+"'s locked "+blockName);
+          return;          
+        }
+
+
+      } else if(SecureChests.BLOCK_LIST.containsKey(Chest_Loc_DOWN.getBlock().getTypeId()) && plugin.blockStatus.get(Chest_Loc_DOWN.getBlock().getTypeId())) {
+        plugin.log.info("block below is container");
+        String Chest_Loc_Locked = Chest_Loc_DOWN.getWorld().getName() + "." + Chest_Loc_DOWN.getBlockX() + "_" + Chest_Loc_DOWN.getBlockY() + "_" + Chest_Loc_DOWN.getBlockZ();
+        String lockname = plugin.getStorageConfig().getString(Chest_Loc_Locked.concat(".owner"));
+        // IF CHEST IS LOCKED        
+        if (lockname != null && !lockname.equalsIgnoreCase(player.getName())) {
+          plugin.log.info("block below is locked");
+          String blockName = SecureChests.BLOCK_LIST.get(Chest_Loc_DOWN.getBlock().getTypeId());
+          event.setCancelled(true);
+          plugin.displayMessage(player, "Cannot place hopper above "+lockname+"'s locked "+blockName);
+          return;          
+        }
+
+      }
     }
   }
 
@@ -129,7 +164,7 @@ public class SecureChestsBlockListener implements Listener {
 
 
       //Start Door Corrections
-      if (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64) { // if block above the effected block is a door
+      if (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64 && b.getTypeId() != 64) { // if block above the effected block is a door
         blockLoc = blockLoc.add(0,1,0);
       }
 

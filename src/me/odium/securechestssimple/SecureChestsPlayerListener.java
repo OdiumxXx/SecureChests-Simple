@@ -1,5 +1,8 @@
 package me.odium.securechestssimple;
 
+import java.util.Iterator;
+import java.util.Set;
+
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -33,7 +36,6 @@ public class SecureChestsPlayerListener implements Listener{
         //START NEW CODE
         
         if(SecureChests.BLOCK_LIST.containsKey(b.getTypeId()) && plugin.blockStatus.get(b.getTypeId())) {//check to see if block clicked is on the watch list and is enabled.
-        	
         	Location blockLoc = b.getLocation();
         	String blockName = SecureChests.BLOCK_LIST.get(b.getTypeId());
         	
@@ -96,7 +98,7 @@ public class SecureChestsPlayerListener implements Listener{
         		if(access == 1) { //it's yours yay!
         			if (cmdStatus == 2) {//unlock and stop from further interacton.
         				lock.unlock();
-        				plugin.displayMessage(player, blockName + " Unlocked.");
+        				plugin.displayMessage(player, blockName + " unlocked.");
         				event.setCancelled(true); 
         			} else if (cmdStatus == 3) {
         				if(lock.addToAccessList(otherPlayer))
@@ -118,12 +120,21 @@ public class SecureChestsPlayerListener implements Listener{
         				else
         					plugin.displayMessage(player, "Player " + otherPlayer + " already on " + blockName + "'s deny list.");
         				event.setCancelled(true);
-        				return;
+        				return;        			
+        			} else if (cmdStatus == 7) {        			  
+        			  Set<String> AccessList = plugin.getStorageConfig().getConfigurationSection(blockLoc.getWorld().getName() + "." + blockLoc.getBlockX() + "_" + blockLoc.getBlockY() + "_" + blockLoc.getBlockZ()+".access").getKeys(false);        			  
+        			  plugin.displayMessage(player, "Access List: ");
+        			  Iterator<String> AccList = AccessList.iterator();
+        			  while(AccList.hasNext())  {
+        			    player.sendMessage("- "+AccList.next());
+        			  }
+        			event.setCancelled(true);
+        			return;        			
         			} else { // no commands to run just open the chest
         				plugin.displayMessage(player, "You own this " + blockName + ".");
         				return;
         			}
-        		} else if (access == 2) { //your on the allow list
+        		} else if (access == 2) { //you're on the allow list
         			if (cmdStatus != 0) { //Trying to run a command on someone else's chest! NO NO!
         				plugin.displayMessage(player, "Unable to run command on "+blockName+" owned by: "+owner);
         				event.setCancelled(true);
@@ -132,27 +143,56 @@ public class SecureChestsPlayerListener implements Listener{
         			}
         			return;
         		} else if (access == 3) {
-        			if (cmdStatus == 2 && player.hasPermission("securechests.bypass.unlock")) {
-        				plugin.displayMessage(player, "Bypassing and unlocking "+blockName+" owned by "+owner+".");
-        				lock.unlock();
-        				event.setCancelled(true);
-        			} else {
-        				plugin.displayMessage(player, "bypassing lock owned by " + owner + ".");
-        			}	
-        			return;
-        			
+        		  if (cmdStatus == 2 && player.hasPermission("securechests.bypass.unlock")) {
+        		    plugin.displayMessage(player, "Bypassing and unlocking "+blockName+" owned by "+owner+".");
+        		    lock.unlock();
+        		    event.setCancelled(true);
+
+        		  } else {
+        		    plugin.displayMessage(player, "bypassing lock owned by " + owner + ".");
+        		  }	
+        		  return;
+
+        		} else if (access == 4) {
+
+        		  if(cmdStatus == 3 && player.hasPermission("securechests.bypass.access")) {
+        		    if(lock.addToAccessList(otherPlayer))
+        		      plugin.displayMessage(player, otherPlayer + " added to " + blockName + "'s access list.");
+        		    else
+        		      plugin.displayMessage(player, "Player " + otherPlayer + " already on " + blockName + "'s access list.");
+        		    event.setCancelled(true);
+        		    return;
+        		  } else if(cmdStatus == 7 && player.hasPermission("securechests.bypass.access")) {
+        		    Set<String> AccessList = plugin.getStorageConfig().getConfigurationSection(blockLoc.getWorld().getName() + "." + blockLoc.getBlockX() + "_" + blockLoc.getBlockY() + "_" + blockLoc.getBlockZ()+".access").getKeys(false);               
+        		    plugin.displayMessage(player, "Access List: ");
+        		    Iterator<String> AccList = AccessList.iterator();
+        		    while(AccList.hasNext())  {
+        		      player.sendMessage("- "+AccList.next());
+        		    }
+        		    event.setCancelled(true);
+        		    return;
+        		  } else if (cmdStatus == 4 && player.hasPermission("securechests.bypass.access")) {
+        		    if(lock.removeFromAccessList(otherPlayer))
+        		      plugin.displayMessage(player, otherPlayer + " removed from " + blockName + "'s access list.");
+        		    else
+        		      plugin.displayMessage(player, "Unable to find " + otherPlayer + " on " + blockName + "'s access list.");
+        		    event.setCancelled(true);
+        		    return;
+        		  }       		  
+
         		} else {
-        			plugin.displayMessage(player, "Can not open " + blockName + " owned by " + owner + ".");
-        			event.setCancelled(true);
-        			return;
+        		  plugin.displayMessage(player, "Can not open " + blockName + " owned by " + owner + ".");
+        		  event.setCancelled(true);
+        		  return;
         		}
         	} else if (cmdStatus == 1) {
-        		lock.lock(player.getName());
-        		plugin.displayMessage(player, "Locking " + blockName + ".");
-        		event.setCancelled(true);
+        	  lock.lock(player.getName());
+        	  plugin.displayMessage(player, "Locking " + blockName + ".");
+        	  event.setCancelled(true);
         	} else if (cmdStatus == 6) {
-        		lock.lock(otherPlayer);
+        	  lock.lock(otherPlayer);
         		plugin.displayMessage(player, "Locking " + blockName + " for " + otherPlayer + ".");
+        		event.setCancelled(true);
         	}
         }
     }//end onPlayerInteract();
