@@ -83,6 +83,11 @@ public class SecureChestsPlayerListener implements Listener{
       Lock lock = new Lock(plugin);
       lock.setLocation(blockLoc);        	
 
+      // ACCESS
+      // 1= return positive you own this chest
+      // 2= return positive you're on one of the access lists
+      // 3= return positive. you have bypass ability.
+      
       //get the current /sc command status:
       // 0/null=none
       // 1= lock
@@ -236,31 +241,54 @@ public class SecureChestsPlayerListener implements Listener{
         cmdStatus = 0;
       }
 
-      if(lock.isLocked()) {
+      if(lock.isLocked()) {  // IF ITEMFRAME IS LOCKED
         if (event.getCause() == DamageCause.ENTITY_ATTACK) {
           Integer access = lock.getAccess(player);
-          if(access == 1) { //return positive you own this chest
-            if (cmdStatus == 2) {//unlock and stop from further interaction.
-              lock.unlock();
-              plugin.displayMessage(player, blockName + " unlocked.");
+          if(access == 1) { // RETURN POSITIVE, YOU OWN THIS ITEMFRAME
+            if (cmdStatus == 2) {  // IF UNLOCKING CHEST
+              lock.unlock(); // unlock itemframe           
               event.setCancelled(true);  // unlocking itemframe, so do not damage
-            } else {
+              plugin.displayMessage(player, blockName + " unlocked.");
+              return;
+            } else { // IF YOU OWN LOCKED ITEM FRAME BUT ARE NOT UNLOCKING              
               event.setCancelled(true);  // Not unlocking itemframe, so do not damage.
+              plugin.displayMessage(player, "You must unlock "+blockName+" before interacting with it.");
+              return;
             }
-          } else {
+
+          } else if (access == 3) { // RETURN POSITIVE, YOU ARE NOT OWNER BUT HAVE BYPASS PERMS
+            if (cmdStatus == 2 && player.hasPermission("securechests.bypass.unlock")) {              
+              lock.unlock();
+              event.setCancelled(true); // Bypassing and unlocking, so do no damage
+              plugin.displayMessage(player, "Bypassing and unlocking "+blockName+" owned by "+owner+".");
+              return;
+            } else if(cmdStatus == 2 && !player.hasPermission("securechests.bypass.unlock")) {
+              event.setCancelled(true); // Does not have unlock permission
+              plugin.displayMessage(player, "No Permission");
+              return;
+            } else {
+              event.setCancelled(true);  // Not Bypass Unlocking itemframe, so do not damage.
+              plugin.displayMessage(player, "You must unlock "+blockName+" owned by "+owner+" before interacting with it.");              
+              return;
+            }             
+
+          } else { // it is not yours and no bypass
             event.setCancelled(true);  // do not own item frame, so do not damage.
             plugin.displayMessage(player, "Can not break " + blockName + " owned by " + owner + ".");
+            return;
           }
         }
-
-      } else if (cmdStatus == 1) {
+        
+      } else if (cmdStatus == 1) { // IF ITEM IS NOT LOCKED
         lock.lock(player.getName());
         plugin.displayMessage(player, "Locking " + blockName + ".");
         event.setCancelled(true); // locking item frame, so do no damage
+        return;
       } else if (cmdStatus == 6) {
         lock.lock(otherPlayer);
         plugin.displayMessage(player, "Locking " + blockName + " for " + otherPlayer + ".");
         event.setCancelled(true); // locking item frame for other, so do no damage
+        return;
       }
 
     }
