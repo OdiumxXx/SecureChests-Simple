@@ -3,6 +3,7 @@ package me.odium.securechestssimple;
 import java.util.List;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
@@ -26,7 +27,7 @@ public class SecureChestsExplosionListener implements Listener {
     // FOR EVERY BLOCK EFFECTED BY EXPLOSION
     for(int i = 0; i < len; i++) {
       Block b = blockList.get(i);
-      int bId = b.getTypeId();
+      Material bId = b.getType();
       Location blockLoc = b.getLocation();
 
       if (SecureChests.BLOCK_LIST.containsKey(bId)) {
@@ -35,8 +36,8 @@ public class SecureChestsExplosionListener implements Listener {
 
 
         // IF BLOCK IS DOOR SELECT BOTTOM HALF
-        if(b.getTypeId() == 64) {
-          if (b.getRelative(BlockFace.DOWN).getTypeId() == 64) {
+        if(b.getType() == Material.WOODEN_DOOR) {
+          if (b.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR) {
             blockLoc = blockLoc.subtract(0,1,0);
           }
         }    
@@ -44,7 +45,7 @@ public class SecureChestsExplosionListener implements Listener {
         Lock lock = new Lock(plugin);
         lock.setLocation(blockLoc);
 
-        if(bId == 54) { //do double chest location corrections
+        if(bId == Material.CHEST) { //do double chest location corrections
           Location ccN = b.getLocation();
           Location ccE = b.getLocation();
           Location ccS = b.getLocation();
@@ -56,15 +57,15 @@ public class SecureChestsExplosionListener implements Listener {
           ccW = ccW.add(1,0,0);
 
           //Boolean dchest = false;
-          if (ccN.getBlock().getTypeId() == 54) {
+          if (ccN.getBlock().getType() == Material.CHEST) {
             blockLoc = blockLoc.subtract(0, 0, 1);
             //    dchest = true;
-          } else if (ccE.getBlock().getTypeId() == 54) {
+          } else if (ccE.getBlock().getType() == Material.CHEST) {
             blockLoc = blockLoc.subtract(1, 0, 0);
             //    dchest = true;
-          } else if (ccS.getBlock().getTypeId() == 54) {
+          } else if (ccS.getBlock().getType() == Material.CHEST) {
             //    dchest = true;
-          } else if (ccW.getBlock().getTypeId() == 54) {
+          } else if (ccW.getBlock().getType() == Material.CHEST) {
             //    dchest = true;
           }        
           lock.setLocation(blockLoc);
@@ -81,7 +82,7 @@ public class SecureChestsExplosionListener implements Listener {
 
       }
       // IF BLOCK ABOVE IS A DOOR
-      if (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64) {
+      if (b.getLocation().add(0,1,0).getBlock().getType() == Material.WOODEN_DOOR) {
 
         Lock lock = new Lock(plugin);
         lock.setLocation(b.getLocation().add(0,1,0)); // set the location of the lock to the door which is above the selected block
@@ -97,42 +98,3 @@ public class SecureChestsExplosionListener implements Listener {
     }
   }
 }
-
-
-
-
-
-//          // IF BLOCK IS CHEST
-//          if (bId == 54) {
-//            Location ccN = b.getLocation();
-//            Location ccE = b.getLocation();
-//            Location ccS = b.getLocation();
-//            Location ccW = b.getLocation();
-//            ccN = ccN.subtract(0,0,1);
-//            ccE = ccE.subtract(1,0,0);
-//            ccS = ccS.add(0,0,1);
-//            ccW = ccW.add(1,0,0);
-//            // IF DOUBLE CHEST, REMOVE BOTH HALVES FROM EXPLOSIN DAMAGE LIST          
-//            if (ccN.getBlock().getTypeId() == 54) {
-//              blockList.remove(i);
-//              
-//              i--;
-//              len--;            
-//            } else if (ccE.getBlock().getTypeId() == 54) {
-//              blockList.remove(i);
-//              i--;
-//              len--;            
-//            } else if (ccS.getBlock().getTypeId() == 54) {
-//              blockList.remove(i);
-//              i--;
-//              len--;            
-//            } else if (ccW.getBlock().getTypeId() == 54) {
-//              blockList.remove(i);
-//              i--;
-//              len--;   
-//            } 
-//          }
-
-
-
-

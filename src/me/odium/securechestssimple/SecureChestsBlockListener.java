@@ -1,6 +1,7 @@
 package me.odium.securechestssimple;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
@@ -26,7 +27,7 @@ public class SecureChestsBlockListener implements Listener {
   public void onBlockPlace(final BlockPlaceEvent event) {
 
     Block b=event.getBlock();
-    if(b.getTypeId() == 54) { //make sure block click is a chest.
+    if(b.getType() == Material.CHEST) { //make sure block click is a chest.
 
       Player player = event.getPlayer();
 
@@ -43,22 +44,22 @@ public class SecureChestsBlockListener implements Listener {
       ccS = ccS.add(0,0,1);
       ccW = ccW.add(1,0,0);
 
-      if (ccN.getBlock().getTypeId() == 54) {
+      if (ccN.getBlock().getType() == Material.CHEST) {
         chestloc = chestloc.subtract(0, 0, 1);
-      } else if (ccE.getBlock().getTypeId() == 54) {
+      } else if (ccE.getBlock().getType() == Material.CHEST) {
         chestloc = chestloc.subtract(1, 0, 0);
       }
       //END double chest detection
 
       Boolean chestChange = false;
-      if (ccN.getBlock().getTypeId() == 54) {
+      if (ccN.getBlock().getType() == Material.CHEST) {
         chestloc = chestloc.subtract(0,0,1);
-      } else if (ccE.getBlock().getTypeId() == 54) {
+      } else if (ccE.getBlock().getType() == Material.CHEST) {
         chestloc = chestloc.subtract(1, 0, 0);
-      } else if (ccS.getBlock().getTypeId() == 54) {
+      } else if (ccS.getBlock().getType() == Material.CHEST) {
         chestloc = chestloc.add(0, 0, 1);
         chestChange = true;
-      } else if (ccW.getBlock().getTypeId() == 54) {
+      } else if (ccW.getBlock().getType() == Material.CHEST) {
         chestloc = chestloc.add(1, 0, 0);
         chestChange = true;
       }
@@ -87,34 +88,34 @@ public class SecureChestsBlockListener implements Listener {
         event.setCancelled(true);
       }
       // IF PLACING HOPPER
-    } else if (b.getTypeId() == 154) {
+    } else if (b.getType() == Material.HOPPER) {
       Player player = event.getPlayer();      
       Location Chest_Loc_UP = b.getLocation().add(0, 1, 0);      
       Location Chest_Loc_DOWN = b.getLocation().subtract(0, 1, 0);
 
       // IF BLOCK ABOVE IS IN BLOCKLIST     
-      if(SecureChests.BLOCK_LIST.containsKey(Chest_Loc_UP.getBlock().getTypeId()) && plugin.blockStatus.get(Chest_Loc_UP.getBlock().getTypeId())) {
+      if(SecureChests.BLOCK_LIST.containsKey(Chest_Loc_UP.getBlock().getType()) && plugin.blockStatus.get(Chest_Loc_UP.getBlock().getType())) {
         plugin.log.info("block above is container");
         String Chest_Loc_Locked = Chest_Loc_UP.getWorld().getName() + "." + Chest_Loc_UP.getBlockX() + "_" + Chest_Loc_UP.getBlockY() + "_" + Chest_Loc_UP.getBlockZ();
         String lockname = plugin.getStorageConfig().getString(Chest_Loc_Locked.concat(".owner"));
         // IF CHEST IS LOCKED        
         if (lockname != null && !lockname.equalsIgnoreCase(player.getName())) {
           plugin.log.info("block above is locked");
-          String blockName = SecureChests.BLOCK_LIST.get(Chest_Loc_UP.getBlock().getTypeId());
+          String blockName = SecureChests.BLOCK_LIST.get(Chest_Loc_UP.getBlock().getType());
           event.setCancelled(true);
           plugin.displayMessage(player, "Cannot place hopper beneath "+lockname+"'s locked "+blockName);
           return;          
         }
 
 
-      } else if(SecureChests.BLOCK_LIST.containsKey(Chest_Loc_DOWN.getBlock().getTypeId()) && plugin.blockStatus.get(Chest_Loc_DOWN.getBlock().getTypeId())) {
+      } else if(SecureChests.BLOCK_LIST.containsKey(Chest_Loc_DOWN.getBlock().getType()) && plugin.blockStatus.get(Chest_Loc_DOWN.getBlock().getType())) {
         plugin.log.info("block below is container");
         String Chest_Loc_Locked = Chest_Loc_DOWN.getWorld().getName() + "." + Chest_Loc_DOWN.getBlockX() + "_" + Chest_Loc_DOWN.getBlockY() + "_" + Chest_Loc_DOWN.getBlockZ();
         String lockname = plugin.getStorageConfig().getString(Chest_Loc_Locked.concat(".owner"));
         // IF CHEST IS LOCKED        
         if (lockname != null && !lockname.equalsIgnoreCase(player.getName())) {
           plugin.log.info("block below is locked");
-          String blockName = SecureChests.BLOCK_LIST.get(Chest_Loc_DOWN.getBlock().getTypeId());
+          String blockName = SecureChests.BLOCK_LIST.get(Chest_Loc_DOWN.getBlock().getType());
           event.setCancelled(true);
           plugin.displayMessage(player, "Cannot place hopper above "+lockname+"'s locked "+blockName);
           return;          
@@ -132,12 +133,12 @@ public class SecureChestsBlockListener implements Listener {
 
     //START NEW CODE
 
-    if((SecureChests.BLOCK_LIST.containsKey(b.getTypeId()) && plugin.blockStatus.get(b.getTypeId())) || (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64 && plugin.blockStatus.get(64))) {//check to see if block clicked is on the watch list and is enabled.
+    if((SecureChests.BLOCK_LIST.containsKey(b.getType()) && plugin.blockStatus.get(b.getType())) || (b.getLocation().add(0,1,0).getBlock().getType() == Material.WOODEN_DOOR && plugin.blockStatus.get(Material.WOODEN_DOOR))) {//check to see if block clicked is on the watch list and is enabled.
 
       Location blockLoc = b.getLocation();
 
 
-      if(b.getTypeId() == 54) { //do double chest location corrections
+      if(b.getType() == Material.CHEST) { //do double chest location corrections
         Location ccN = b.getLocation();
         Location ccE = b.getLocation();
         Location ccS = b.getLocation();
@@ -149,27 +150,27 @@ public class SecureChestsBlockListener implements Listener {
         ccW = ccW.add(1,0,0);
 
         //Boolean dchest = false;
-        if (ccN.getBlock().getTypeId() == 54) {
+        if (ccN.getBlock().getType() == Material.CHEST) {
           blockLoc = blockLoc.subtract(0, 0, 1);
           //    dchest = true;
-        } else if (ccE.getBlock().getTypeId() == 54) {
+        } else if (ccE.getBlock().getType() == Material.CHEST) {
           blockLoc = blockLoc.subtract(1, 0, 0);
           //    dchest = true;
-        } else if (ccS.getBlock().getTypeId() == 54) {
+        } else if (ccS.getBlock().getType() == Material.CHEST) {
           //    dchest = true;
-        } else if (ccW.getBlock().getTypeId() == 54) {
+        } else if (ccW.getBlock().getType() == Material.CHEST) {
           //    dchest = true;
         }
       } //END Chest location corrections.
 
 
       //Start Door Corrections
-      if (b.getLocation().add(0,1,0).getBlock().getTypeId() == 64 && b.getTypeId() != 64) { // if block above the effected block is a door
+      if (b.getLocation().add(0,1,0).getBlock().getType() == Material.WOODEN_DOOR && b.getType() != Material.WOODEN_DOOR) { // if block above the effected block is a door
         blockLoc = blockLoc.add(0,1,0);
       }
 
-      else if(b.getTypeId() == 64) { //make sure block click is a DOOR
-        if (b.getRelative(BlockFace.DOWN).getTypeId() == 64) {
+      else if(b.getType() == Material.WOODEN_DOOR) { //make sure block click is a DOOR
+        if (b.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR) {
           blockLoc = blockLoc.subtract(0,1,0);
         }
       }
@@ -179,13 +180,13 @@ public class SecureChestsBlockListener implements Listener {
 
 
       //get name AFTER position corrections!
-      String blockName = SecureChests.BLOCK_LIST.get(b.getTypeId());
+      String blockName = SecureChests.BLOCK_LIST.get(b.getType());
 
       // IF THE BLOCK IS NOT IN BLOCK_LIST IT INDICATES THAT A BLOCK BELOW A DOOR IS BEING BROKEN, THUS WE RENAME BLOCKNAME TO BE 'DOOR'
-      if (!SecureChests.BLOCK_LIST.containsKey(b.getTypeId())) {
+      if (!SecureChests.BLOCK_LIST.containsKey(b.getType())) {
         blockName = "door";
       }
-      
+
       Lock lock = new Lock(plugin);
       lock.setLocation(blockLoc);
 

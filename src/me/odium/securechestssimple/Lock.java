@@ -25,6 +25,8 @@ public class Lock {
 	public boolean onAccessList(String player) {
 		if(plugin.getStorageConfig().getBoolean(yamlLoc+".access."+player))
 			return true;
+		else if(plugin.getAListConfig().getBoolean(getOwner()+"."+player.toLowerCase()))
+		   return true;
 		return false;
 	}
 	
@@ -82,7 +84,7 @@ public class Lock {
 		if (player.equals(getOwner())) {
 			return 1; //return positive you own this chest
 		} else if (onAccessList(player) || (onGlobalList(player) && !onDenyList(player))) {
-			return 2; //return positive your on one of the access lists
+			return 2; //return positive you're on one of the access lists
 		} else if (plugin.getServer().getPlayer(player).hasPermission("securechests.bypass.open")) {
 			return 3; //return positive. you have bypass ability.
 		} else {

@@ -1,6 +1,7 @@
 package me.odium.securechestssimple;
 
 
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,7 +20,7 @@ public class SecureChestsRedstoneListener implements Listener {
 	public void onRedstoneEvent(final BlockRedstoneEvent event) {
 		Block b = event.getBlock();
 
-		if (b.getTypeId() != 64) {
+		if (b.getType() != Material.WOODEN_DOOR) {
 			return; //redstone event is not a door stop now.
 		}
 

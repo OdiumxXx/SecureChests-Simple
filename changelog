@@ -1,0 +1,50 @@
+Commands
+
+/lock – Lock containers/doors etc
+/unlock – Unlock your containers/doors etc
+/sc add player – Add user to access list
+/sc deny player – Add user to deny list
+/sc remove player – Remove user from access list
+/sc gadd player – Add user to your global access list
+/sc gremove player – Remove user from global access list
+Permissions
+
+securechests.lock
+securechests.bypass.lock
+securechests.bypass.open
+securechests.bypass.break
+securechests.bypass.unlock
+securechests.bypass.access
+securechests.reload
+
+0.1
+- This version is 0.5.1 of SecureChests and largely unchanged.
+0.2
+- Added: An improved version of Haklowner's ExplosionListener from Securechests 0.5.2
+0.2.1
+- Added: EnderChest Locking (Updated for 1.3.1)
+0.2.2
+- Added: Frames (Updated for 1.4.2)
+0.2.3
+- Improved itemframes to not break even when block they're attached to is broken or as a result of explosion
+- Stopped block below a door not being effected by explosions if door isn't locked
+- Datafolder was HARDCODED!!! (Fixed)
+0.2.4
+- Door deprectaed, replaced with blockface check provided by Ribesg
+- if block below door is being broken often message returns 'cannot break null owned by ...' > null replaced with door
+0.2.5
+- Added /sc access to check the access list of a chest/door
+- Added 'securechests.bypass.access' - Those with permission can add to/remove from/check another user's locked items access list  
+- Allowed those with securechests.bypass.access to manipulate another players locked item's access list
+0.2.6
+- Locked doors would not unlock if bottom half of door was broken by owner/admin [Fixed]
+0.2.7
+- Fixed locking container for other player opening chest during lock
+- Added hopper/dropper/trappedcehst to locking container list
+- Added hopper protection - Cannot place hoppers above/below a locked container which is not yours
+0.2.8
+- Added Anvils to list of lockable blocks
+- Updated deprecated 'getTypeId()'
+- Fixed Global Access List
+0.2.9
+- Updated ItemFrame locking to Bukkit-1.7.2 handling

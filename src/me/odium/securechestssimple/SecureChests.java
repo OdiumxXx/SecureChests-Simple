@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -32,27 +33,28 @@ public class SecureChests extends JavaPlugin {
 
 
 
-  public static final Map<Integer, String> BLOCK_LIST = createMap();
+  public static final Map<Material, String> BLOCK_LIST = createMap();
 
-  private static Map<Integer, String> createMap() {
-    Map<Integer, String> result = new HashMap<Integer, String>();
-    result.put(23, "dispenser");
-    result.put(54, "chest");
-    result.put(61, "furnace");
-    result.put(62, "furnace");
-    result.put(64, "door");
-    result.put(96, "trapdoor");
-    result.put(107, "fence gate");
-    result.put(117, "potion stand");
-    result.put(130, "enderchest");
-    result.put(389, "frame");
-    result.put(154, "hopper");
-    result.put(158, "dropper");
-    result.put(146, "trapped chest");
+  private static Map<Material, String> createMap() {
+    Map<Material, String> result = new HashMap<Material, String>();
+    result.put(Material.DISPENSER, "dispenser");
+    result.put(Material.CHEST, "chest");
+    result.put(Material.FURNACE, "furnace");
+    result.put(Material.BURNING_FURNACE, "furnace");
+    result.put(Material.WOODEN_DOOR, "door");    
+    result.put(Material.TRAP_DOOR, "trapdoor");
+    result.put(Material.FENCE_GATE, "fence gate");
+    result.put(Material.BREWING_STAND, "potion stand");
+    result.put(Material.ENDER_CHEST, "enderchest");
+    result.put(Material.ITEM_FRAME, "frame");
+    result.put(Material.HOPPER, "hopper");
+    result.put(Material.DROPPER, "dropper");
+    result.put(Material.ANVIL, "anvil");
+    result.put(Material.TRAPPED_CHEST, "trapped chest");
     return Collections.unmodifiableMap(result);	
   }
 
-  public Map<Integer, Boolean> blockStatus = new HashMap<Integer, Boolean>();
+  public Map<Material, Boolean> blockStatus = new HashMap<Material, Boolean>();
   public Map<Player, Integer> scCmd = new HashMap<Player, Integer>();
   public Map<Player, String> scAList = new HashMap<Player, String>();	
   public Map<Integer, Boolean> blockExplosion = new HashMap<Integer, Boolean>();
@@ -95,54 +97,45 @@ public class SecureChests extends JavaPlugin {
   }
   // End Custom Config
 
-  //begin chest storage config commands
-  //
-  //	private FileConfiguration storage = null;
-  //	private File storageConfFile = new File(getDataFolder().getAbsolutePath()+File.separator, "storage.yml");
-  //		public FileConfiguration getStorageConfig() {
-  //		if (storage == null) {
-  //			reloadStorageConfig();
-  //		}
-  //		return storage;
-  //	}
-  //
-  //	public void reloadStorageConfig() {
-  //		storage = YamlConfiguration.loadConfiguration(storageConfFile);
-  //	}
-  //	public void saveStorageConfig() {
-  //		try {
-  //			storage.save(storageConfFile);
-  //		} catch(IOException ex) {
-  //			Logger.getLogger(JavaPlugin.class.getName()).log(Level.SEVERE, "Could not save config to " + storageConfFile, ex);
-  //		}
-  //	}
-
-  //end chest storage config commands
-
-  //begin player global access list config commands
-
-  private FileConfiguration aList = null;
-  private File aListConfFile = new File(getDataFolder(), "accesslist.yml");
-
-  public FileConfiguration getAListConfig() {
-    if (aList == null) {
-      reloadAListConfig();
-    }
-    return aList;
-  }
+  
+  //Custom Config  
+  private FileConfiguration AListConfig = null;
+  private File AListConfigFile = null;
 
   public void reloadAListConfig() {
-    aList = YamlConfiguration.loadConfiguration(aListConfFile);
+    if (AListConfigFile == null) {
+      AListConfigFile = new File(getDataFolder(), "AList.yml");
+    }
+    AListConfig = YamlConfiguration.loadConfiguration(AListConfigFile);
+    // Look for defaults in the jar
+    InputStream defConfigStream = getResource("AList.yml");
+    if (defConfigStream != null) {
+      YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+      AListConfig.setDefaults(defConfig);
+    }
+  }
+
+  public FileConfiguration getAListConfig() {
+    if (AListConfig == null) {
+      reloadAListConfig();
+    }
+    return AListConfig;
   }
 
   public void saveAListConfig() {
+    if (AListConfig == null || AListConfigFile == null) {
+      return;
+    }
     try {
-      aList.save(aListConfFile);
-    } catch(IOException ex) {
-      Logger.getLogger(JavaPlugin.class.getName()).log(Level.SEVERE, "Could not save config to " + aListConfFile, ex);
+      AListConfig.save(AListConfigFile);
+    } catch (IOException ex) {
+      Logger.getLogger(JavaPlugin.class.getName()).log(Level.SEVERE, "Could not save config to " + AListConfigFile, ex);
     }
   }
-  //end player global access list config commands
+  // End Custom Config
+  
+  
+  
 
   public void displayMessage(Player player, String Message) {
     player.sendMessage(ChatColor.DARK_BLUE + "[Secure Chests]" + ChatColor.WHITE + " " + Message);
@@ -209,6 +202,9 @@ public class SecureChests extends JavaPlugin {
       if(!config.contains("Dropper")){
         config.set("Dropper", true);
       }  
+      if(!config.contains("Anvil")){
+        config.set("Anvil", true);
+      }  
       if(!config.contains("TrappedChest")){
         config.set("TrappedChest", true);
       }  
@@ -221,40 +217,48 @@ public class SecureChests extends JavaPlugin {
     FileConfigurationOptions cfgOptions = cfg.options();
     cfgOptions.copyDefaults(true);
     cfgOptions.copyHeader(true);
-    saveConfig();      
-
+    saveConfig();  
+ // Load Custom Config
+    FileConfiguration ccfg = getAListConfig();
+    FileConfigurationOptions ccfgOptions = ccfg.options();
+    ccfgOptions.copyDefaults(true);
+    ccfgOptions.copyHeader(true);
+    saveAListConfig();
+    
     blockStatus.clear(); // clear the enable/disabled for all block during initialization.
     // Get current active block
-    for (Integer key : BLOCK_LIST.keySet() ) { //Start with all block default to disabled.
+    for (Material key : BLOCK_LIST.keySet() ) { //Start with all block default to disabled.
       blockStatus.put(key, false);
     }
 
     if(getConfig().getBoolean("Chest"))
-      blockStatus.put(54, true);
+      blockStatus.put(Material.CHEST, true);
     if(getConfig().getBoolean("Furnace")) {
-      blockStatus.put(61, true);
-      blockStatus.put(62, true);
+      blockStatus.put(Material.FURNACE, true);
+      blockStatus.put(Material.BURNING_FURNACE, true);
     }
     if(getConfig().getBoolean("Door"))
-      blockStatus.put(64, true);
+      blockStatus.put(Material.WOODEN_DOOR, true);
     if(getConfig().getBoolean("Dispenser"))
-      blockStatus.put(23, true);
+      blockStatus.put(Material.DISPENSER, true);
     if(getConfig().getBoolean("Trapdoor"))
-      blockStatus.put(96, true);
+      blockStatus.put(Material.TRAP_DOOR, true);
     if(getConfig().getBoolean("Gate"))
-      blockStatus.put(107, true);
+      blockStatus.put(Material.FENCE_GATE, true);
     if(getConfig().getBoolean("Potion"))
-      blockStatus.put(117, true);
+      blockStatus.put(Material.BREWING_STAND, true);
     if(getConfig().getBoolean("EnderChest"))
-      blockStatus.put(130, true);
+      blockStatus.put(Material.ENDER_CHEST, true);
     if(getConfig().getBoolean("Frame"))
-      blockStatus.put(389, true);
+      blockStatus.put(Material.ITEM_FRAME, true);
     if(getConfig().getBoolean("Hopper"))
-      blockStatus.put(154, true);
+      blockStatus.put(Material.HOPPER, true);
     if(getConfig().getBoolean("Dropper"))
-      blockStatus.put(158, true);
+      blockStatus.put(Material.DROPPER, true);
+    if(getConfig().getBoolean("Anvil"))
+      blockStatus.put(Material.ANVIL, true);
     if(getConfig().getBoolean("TrappedChest"))
-      blockStatus.put(146, true);
+      blockStatus.put(Material.TRAPPED_CHEST, true);
     // log initilization and continue
     log.info("[" + getDescription().getName() + "] " + getDescription().getVersion() + " enabled.");    
   }
@@ -265,43 +269,45 @@ public class SecureChests extends JavaPlugin {
     reloadConfig();
     blockStatus.clear(); // clear the enable/disabled for all block during initialization.
     // Get current active block
-    for (Integer key : BLOCK_LIST.keySet() ) { //Start with all block default to disabled.
+    for (Material key : BLOCK_LIST.keySet() ) { //Start with all block default to disabled.
       blockStatus.put(key, false);
     }
 
     if(getConfig().getBoolean("Chest"))
-      blockStatus.put(54, true);
+      blockStatus.put(Material.CHEST, true);
     if(getConfig().getBoolean("Furnace")) {
-      blockStatus.put(61, true);
-      blockStatus.put(62, true);
+      blockStatus.put(Material.FURNACE, true);
+      blockStatus.put(Material.BURNING_FURNACE, true);
     }
     if(getConfig().getBoolean("Door"))
-      blockStatus.put(64, true);
+      blockStatus.put(Material.WOODEN_DOOR, true);
     if(getConfig().getBoolean("Dispenser"))
-      blockStatus.put(23, true);
+      blockStatus.put(Material.DISPENSER, true);
     if(getConfig().getBoolean("Trapdoor"))
-      blockStatus.put(96, true);
+      blockStatus.put(Material.TRAP_DOOR, true);
     if(getConfig().getBoolean("Gate"))
-      blockStatus.put(107, true);
+      blockStatus.put(Material.FENCE_GATE, true);
     if(getConfig().getBoolean("Potion"))
-      blockStatus.put(117, true);
+      blockStatus.put(Material.BREWING_STAND, true);
     if(getConfig().getBoolean("EnderChest"))
-      blockStatus.put(130, true);
+      blockStatus.put(Material.ENDER_CHEST, true);
     if(getConfig().getBoolean("Frame"))
-      blockStatus.put(389, true);
+      blockStatus.put(Material.ITEM_FRAME, true);
     if(getConfig().getBoolean("Hopper"))
-      blockStatus.put(154, true);
+      blockStatus.put(Material.HOPPER, true);
     if(getConfig().getBoolean("Dropper"))
-      blockStatus.put(158, true);
+      blockStatus.put(Material.DROPPER, true);
+    if(getConfig().getBoolean("Anvil"))
+      blockStatus.put(Material.ANVIL, true);
     if(getConfig().getBoolean("TrappedChest"))
-      blockStatus.put(146, true);
+      blockStatus.put(Material.TRAPPED_CHEST, true);
     log.info("[" + getDescription().getName() + "] Reload complete");
   }
 
   public void onDisable() {
-    //saveStorageConfig();
-    //saveAListConfig();
-    //saveConfig();
+    saveStorageConfig();
+    saveAListConfig();
+    saveConfig();
     log.info("[" + getDescription().getName() + "] " + getDescription().getVersion() + " Disabled."); 
   }
 
@@ -347,6 +353,8 @@ public class SecureChests extends JavaPlugin {
         } else if (args.length == 0 && sender.hasPermission("securechests.lock")) {
           displayMessage(player, "Now interact with a container/door to lock it.");
           scCmd.put(player, 1);
+        } else if(args[0].equalsIgnoreCase("reload") && args.length == 1) {
+          reloadPlugin();
         } else {
           displayMessage(player, "You dont have permission to lock this!");
         }
@@ -440,7 +448,7 @@ public class SecureChests extends JavaPlugin {
             if (args.length != 2) {
               displayMessage(player, "Correct command usage: /sc gadd username");
             } else {
-              String pName = myGetPlayerName(args[1]);
+              String pName = myGetPlayerName(args[1]).toLowerCase();
 
               if (!getAListConfig().getBoolean(sender.getName()+"." + pName)){
                 displayMessage(player, "Adding " + pName + " to your global allow list.");
@@ -458,13 +466,13 @@ public class SecureChests extends JavaPlugin {
             if (args.length != 2) {
               displayMessage(player, "Correct command usage: /sc gremove username");
             } else {
-              String pName = myGetPlayerName(args[1]);
+              String pName = myGetPlayerName(args[1]).toLowerCase();
               if (!getAListConfig().getBoolean(sender.getName()+"." + pName)){
                 displayMessage(player, "Player " + pName + " Not on your global access list");
               } else {
                 getAListConfig().set(sender.getName()+"." + pName, null);
                 saveAListConfig();
-                displayMessage(player, "Player "+pName+" Removed from your global access list.");
+                displayMessage(player, "Player "+pName+" removed from your global access list.");
               }
             }
           } else {
