@@ -47,4 +47,3 @@ securechests.reload
 - Updated deprecated 'getTypeId()'
 - Fixed Global Access List
 0.2.9
-- Updated ItemFrame locking to Bukkit-1.7.2 handling

@@ -127,14 +127,17 @@ public class SecureChestsBlockListener implements Listener {
 
   @EventHandler(priority = EventPriority.LOW)	
   public void onBlockBreak(final BlockBreakEvent event) {
-
+    //  DECLARATIONS
     Block b = event.getBlock();
     Player player = event.getPlayer();
+    String blockName = null;
 
-    //START NEW CODE
 
-    if((SecureChests.BLOCK_LIST.containsKey(b.getType()) && plugin.blockStatus.get(b.getType())) || (b.getLocation().add(0,1,0).getBlock().getType() == Material.WOODEN_DOOR && plugin.blockStatus.get(Material.WOODEN_DOOR))) {//check to see if block clicked is on the watch list and is enabled.
-
+// IF BLOCK IS IN WATCHLIST & ENABLED IN CONFIG || IF BLOCK ABOVE IS A WOODENDOOR || IF BLOCK ABOVE IS AN ANVIL
+    if((SecureChests.BLOCK_LIST.containsKey(b.getType()) && plugin.blockStatus.get(b.getType())) 
+        || (b.getLocation().add(0,1,0).getBlock().getType() == Material.WOODEN_DOOR && plugin.blockStatus.get(Material.WOODEN_DOOR))
+        || (b.getLocation().add(0,1,0).getBlock().getType() == Material.ANVIL && plugin.blockStatus.get(Material.ANVIL))) {  
+  
       Location blockLoc = b.getLocation();
 
 
@@ -162,31 +165,34 @@ public class SecureChestsBlockListener implements Listener {
           //    dchest = true;
         }
       } //END Chest location corrections.
+      
+      // START DOOR/ANVIL CORRECTIONS      
+      // ANVIL CORRECTION      
+      if (b.getLocation().add(0,1,0).getBlock().getType() == Material.ANVIL) { // if block above the effected block is AN ANVIL
+        blockLoc = blockLoc.add(0,1,0); // RAISE BLOCKLOCATION UP 1
+        blockName = "anvil";
 
 
-      //Start Door Corrections
-      if (b.getLocation().add(0,1,0).getBlock().getType() == Material.WOODEN_DOOR && b.getType() != Material.WOODEN_DOOR) { // if block above the effected block is a door
-        blockLoc = blockLoc.add(0,1,0);
-      }
+      // DOOR CORRECTION
+      // IF BLOCK IS NOT A DOOR, BUT BLOCK ABOVE IS A DOOR
+      } else if (b.getLocation().add(0,1,0).getBlock().getType() == Material.WOODEN_DOOR && b.getType() != Material.WOODEN_DOOR) { 
+        blockLoc = blockLoc.add(0,1,0); // RAISE BLOCKLOCATION UP 1
+        blockName = "door";
 
-      else if(b.getType() == Material.WOODEN_DOOR) { //make sure block click is a DOOR
-        if (b.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR) {
-          blockLoc = blockLoc.subtract(0,1,0);
+
+      } else if(b.getType() == Material.WOODEN_DOOR) { // IF THE BLOCK CLICK IS A DOOR
+        if (b.getRelative(BlockFace.DOWN).getType() == Material.WOODEN_DOOR) { // IF THE BLOCK CLICK IS TOP HALF OF DOOR
+          blockLoc = blockLoc.subtract(0,1,0); // LOWER THE BLOCKLOCATION 1 DOWN (BOTTOM HALF OF DOOR)
         }
+        blockName = "door";
       }
       // End Door Corrections
 
-
-
-
-      //get name AFTER position corrections!
-      String blockName = SecureChests.BLOCK_LIST.get(b.getType());
-
-      // IF THE BLOCK IS NOT IN BLOCK_LIST IT INDICATES THAT A BLOCK BELOW A DOOR IS BEING BROKEN, THUS WE RENAME BLOCKNAME TO BE 'DOOR'
-      if (!SecureChests.BLOCK_LIST.containsKey(b.getType())) {
-        blockName = "door";
+      //If neither of the above blocknames apply, Set the blockname as per the BlockList 
+      if (blockName != "door" || blockName != "anvil") {
+        blockName = SecureChests.BLOCK_LIST.get(b.getType());
       }
-
+      
       Lock lock = new Lock(plugin);
       lock.setLocation(blockLoc);
 

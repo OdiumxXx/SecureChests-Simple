@@ -6,16 +6,21 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.FileConfigurationOptions;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,8 +33,8 @@ public class SecureChests extends JavaPlugin {
   private final SecureChestsRedstoneListener redstoneListener = new SecureChestsRedstoneListener(this);
   private final SecureChestsExplosionListener explosionListener = new SecureChestsExplosionListener(this);
 
-  //Define the logger
-  Logger log = Logger.getLogger("Minecraft");
+  //Define the logger  
+  public Logger log = Logger.getLogger("Minecraft");
 
 
 
@@ -330,22 +335,81 @@ public class SecureChests extends JavaPlugin {
     }
     return pName;
   }
+  
+  public void purgeLocks() {
+    Boolean itemframeDetection = false;
+    int n = 0;
+    
+    Set <String> locations = this.getStorageConfig().getKeys(true);
+    for (String loc : locations) {        
+      if (loc.contains(".") && !loc.contains("owner")) {
+        String[] locSplit = loc.split("\\.");
+        World world = Bukkit.getWorld(locSplit[0]);                  
+
+        String[] coords = locSplit[1].split("\\_");
+        int x = Integer.parseInt(coords[0]);
+        int y = Integer.parseInt(coords[1]);
+        int z = Integer.parseInt(coords[2]);
+
+        Location lockLocation = new Location(world, x, y, z);
+        Material lockBlockType = lockLocation.getBlock().getType(); 
+
+        Entity[] chunkEnts = lockLocation.getBlock().getChunk().getEntities();
+        for (Entity ent : chunkEnts) {
+
+          World entworldName = ent.getWorld();
+          int entX = ent.getLocation().getBlockX();
+          int entY = ent.getLocation().getBlockY();
+          int entZ = ent.getLocation().getBlockZ();
+          Location entityLocation = new Location(entworldName, entX, entY, entZ);
+
+          if (entityLocation.equals(lockLocation)) {
+            itemframeDetection = true;
+            //log.info("ITEMFRAMDETECTION: TRUE");
+          }  
+        }
+
+        if( (SecureChests.BLOCK_LIST.containsKey(lockBlockType) && this.blockStatus.get(lockBlockType)) || itemframeDetection == true) {
+          itemframeDetection = false;
+        } else {
+          n++;
+          log.info("##### Broken Lock Found #####");
+          log.info("BlockType: "+lockBlockType.toString());
+          log.info("BlockLocation: "+world.getName()+", "+x+", "+y+", "+z);
+          log.info("Block type is not protected by securechests");                
+          this.getStorageConfig().set(locSplit[0]+"."+locSplit[1], null);
+          log.info("---- Lock Removed ----");                       
+          log.info(" ");
+        }
+      }
+    }
+    if (n == 0) {      
+      log.info("No Broken Locks Found!");
+    } else {
+      log.info(n+" Broken Locks Removed."); 
+      this.saveStorageConfig();  
+    }    
+  }
+  //END PURGE COMMAND
+  
 
   public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     Player player = null;
     if (sender instanceof Player) {
       player = (Player) sender;
     }
-
-    if (cmd.getName().equalsIgnoreCase("lock")){ // If the player typed /basic then do the following...
+    
+    if (cmd.getName().equalsIgnoreCase("lock")){ 
       if (player == null) {
         sender.sendMessage("this command can only be run by a player.");
+        
       } else {
         if(args.length == 1) {
           if (sender.hasPermission("securechests.bypass.lock")) {
             String pName = myGetPlayerName(args[0]);
+            String uuidString = Bukkit.getOfflinePlayer(args[0]).getUniqueId().toString();
             displayMessage(player, "Now interact with a container/door to lock it for "+pName+".");
-            scAList.put(player, pName);
+            scAList.put(player, uuidString);
             scCmd.put(player, 6);
           } else {
             displayMessage(player, "You dont have permission to lock other's Blocks!");
@@ -362,13 +426,15 @@ public class SecureChests extends JavaPlugin {
       return true;
     } else if (cmd.getName().equalsIgnoreCase("unlock")) {
       if (player == null) {
-        displayMessage(player, "this command can only be run by a player.");
+        sender.sendMessage("this command can only be run by a player.");
+        return true;
       } else {
         if (sender.hasPermission("securechests.lock")) {
           displayMessage(player, "Now interact with a container/door to unlock it.");
           scCmd.put(player, 2);
         } else {
           displayMessage(player, "You dont have permission to lock your Blocks!");
+          return true;
         }
       }
     } else if (cmd.getName().equalsIgnoreCase("sc") || cmd.getName().equalsIgnoreCase("securechests") || cmd.getName().equalsIgnoreCase("securechest")) {
@@ -377,8 +443,11 @@ public class SecureChests extends JavaPlugin {
           displayHelp(sender);
         } else if(args[0].equalsIgnoreCase("reload") && args.length == 1) {
           reloadPlugin();
+        } else if(args[0].equalsIgnoreCase("purge") && args.length == 1) {
+          purgeLocks();
         } else {
-          displayMessage(player, "this command can only be run by a player.");
+          sender.sendMessage("this command can only be run by a player.");
+          return true;
         }
       } else {
         if(args.length == 0 || args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("?")) { //get help menu
@@ -389,12 +458,14 @@ public class SecureChests extends JavaPlugin {
             scCmd.put(player, 1);
           } else {
             displayMessage(player, "You dont have permission to lock your chests.");
+            return true;
           }
         } else if(args[0].equalsIgnoreCase("lock") && args.length == 2) {
           if (sender.hasPermission("securechests.bypass.lock")) {
             String pName = myGetPlayerName(args[1]);
+            String uuidString = Bukkit.getOfflinePlayer(args[1]).getUniqueId().toString();
             displayMessage(player, "Now interact with a container/door to lock it for " + pName);
-            scAList.put(player, pName);
+            scAList.put(player, uuidString);
             scCmd.put(player, 6);				 
           } else {					
             displayMessage(player, "You dont have permission to lock other's Blocks!");
@@ -412,8 +483,9 @@ public class SecureChests extends JavaPlugin {
               displayMessage(player, "Correct command usage: /sc add username");
             } else {
               String pName = myGetPlayerName(args[1]);
+              String uuidString = Bukkit.getOfflinePlayer(args[1]).getUniqueId().toString();
               displayMessage(player, "will add user " + pName + " to the next owned block you interact with.");
-              scAList.put(player , pName);
+              scAList.put(player, uuidString);
               scCmd.put(player, 3);
             }
           } 
@@ -423,8 +495,9 @@ public class SecureChests extends JavaPlugin {
               displayMessage(player, "Correct command usage: /sc remove username");
             } else {
               String pName = myGetPlayerName(args[1]);
+              String uuidString = Bukkit.getOfflinePlayer(args[1]).getUniqueId().toString();
               displayMessage(player, "will remove user " + pName + " from the next owned block you interact with.");
-              scAList.put(player , pName);
+              scAList.put(player, uuidString);
               scCmd.put(player, 4);
             }
           } else {
@@ -436,8 +509,9 @@ public class SecureChests extends JavaPlugin {
               displayMessage(player, "Correct command usage: /sc deny username");
             } else {
               String pName = myGetPlayerName(args[1]);
+              String uuidString = Bukkit.getOfflinePlayer(args[1]).getUniqueId().toString();
               displayMessage(player, "will add user " + pName + " to the deny list of the next owned block you interact with.");
-              scAList.put(player , pName);
+              scAList.put(player , uuidString);
               scCmd.put(player, 5);
             }
           } else {
@@ -449,10 +523,11 @@ public class SecureChests extends JavaPlugin {
               displayMessage(player, "Correct command usage: /sc gadd username");
             } else {
               String pName = myGetPlayerName(args[1]).toLowerCase();
+              String uuidString = Bukkit.getOfflinePlayer(args[1]).getUniqueId().toString();
 
-              if (!getAListConfig().getBoolean(sender.getName()+"." + pName)){
+              if (!getAListConfig().getBoolean(player.getUniqueId()+"." + uuidString)){
                 displayMessage(player, "Adding " + pName + " to your global allow list.");
-                getAListConfig().set(sender.getName()+"." + pName, true);
+                getAListConfig().set(player.getUniqueId()+"." + uuidString, true);
                 saveAListConfig();
               } else {
                 displayMessage(player, "Player "+pName+" already in access list.");
@@ -467,10 +542,12 @@ public class SecureChests extends JavaPlugin {
               displayMessage(player, "Correct command usage: /sc gremove username");
             } else {
               String pName = myGetPlayerName(args[1]).toLowerCase();
-              if (!getAListConfig().getBoolean(sender.getName()+"." + pName)){
+              String uuidString = Bukkit.getOfflinePlayer(args[0]).getUniqueId().toString();
+              
+              if (!getAListConfig().getBoolean(player.getUniqueId()+"." + uuidString)){
                 displayMessage(player, "Player " + pName + " Not on your global access list");
               } else {
-                getAListConfig().set(sender.getName()+"." + pName, null);
+                getAListConfig().set(player.getUniqueId()+"." + uuidString, null);
                 saveAListConfig();
                 displayMessage(player, "Player "+pName+" removed from your global access list.");
               }
@@ -484,6 +561,11 @@ public class SecureChests extends JavaPlugin {
         } else if (args[0].equalsIgnoreCase("access")) {
           displayMessage(player, "Now interact with a container/door to check it's access list");
           scCmd.put(player, 7);
+
+          // PURGE COMMAND
+        } else if (args[0].equalsIgnoreCase("purge")) {          
+          displayMessage(player, "This command must be run from console!");
+          return true;
         } else {
           displayMessage(player, "Unknown command. type \"/sc help\" for command list.");
         }

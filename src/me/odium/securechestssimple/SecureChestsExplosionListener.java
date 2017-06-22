@@ -92,7 +92,19 @@ public class SecureChestsExplosionListener implements Listener {
           i--;
           len--;
         }
-      }     
+      }
+      // IF BLOCK ABOVE IS AN ANVIL
+      if (b.getLocation().add(0,1,0).getBlock().getType() == Material.ANVIL) {
+
+        Lock lock = new Lock(plugin);
+        lock.setLocation(b.getLocation().add(0,1,0)); // set the location of the lock to the door which is above the selected block
+
+        if(lock.isLocked()) { // if the ANVIL above the selected block is locked
+          blockList.remove(i); // remove the block from explosion list
+          i--;
+          len--;
+        }
+      }
 
 
     }

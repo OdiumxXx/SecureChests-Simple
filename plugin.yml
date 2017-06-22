@@ -1,8 +1,8 @@
 name: SecureChests-Simple
 main: me.odium.securechestssimple.SecureChests
-version: 0.2.9
-author: HAklowner - Simple Version Maintained by Odium
-description: SecureChests Simple - A less bloated alternative to SecureChests
+version: 0.3.1
+author: HAklowner - Original Version Maintained by Odium
+description: SecureChests-Simple - A less bloated alternative to SecureChests
 commands:
    lock:
       description: lock your chests

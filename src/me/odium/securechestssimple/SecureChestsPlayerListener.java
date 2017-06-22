@@ -7,14 +7,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -134,14 +131,21 @@ public class SecureChestsPlayerListener implements Listener{
             event.setCancelled(true);
             return;        			
           } else if (cmdStatus == 7) {        			  
-            Set<String> AccessList = plugin.getStorageConfig().getConfigurationSection(blockLoc.getWorld().getName() + "." + blockLoc.getBlockX() + "_" + blockLoc.getBlockY() + "_" + blockLoc.getBlockZ()+".access").getKeys(false);        			  
-            plugin.displayMessage(player, "Access List: ");
-            Iterator<String> AccList = AccessList.iterator();
-            while(AccList.hasNext())  {
-              player.sendMessage("- "+AccList.next());
+            
+            if (plugin.getStorageConfig().isConfigurationSection(blockLoc.getWorld().getName() + "." + blockLoc.getBlockX() + "_" + blockLoc.getBlockY() + "_" + blockLoc.getBlockZ()+".access") == true) {
+              Set<String> AccessList = plugin.getStorageConfig().getConfigurationSection(blockLoc.getWorld().getName() + "." + blockLoc.getBlockX() + "_" + blockLoc.getBlockY() + "_" + blockLoc.getBlockZ()+".access").getKeys(false);        			  
+              plugin.displayMessage(player, "Access List: ");
+              Iterator<String> AccList = AccessList.iterator();
+              while(AccList.hasNext())  {
+                player.sendMessage("- "+AccList.next());
+              }
+              event.setCancelled(true);
+              return;
+            } else {
+              plugin.displayMessage(player, "Access List: ");
+              event.setCancelled(true);
+              return;
             }
-            event.setCancelled(true);
-            return;        			
           } else { // no commands to run just open the chest
             plugin.displayMessage(player, "You own this " + blockName + ".");
             return;
@@ -200,7 +204,7 @@ public class SecureChestsPlayerListener implements Listener{
           return;
         }
       } else if (cmdStatus == 1) {
-        lock.lock(player.getName());
+        lock.lock(player.getUniqueId().toString());
         plugin.displayMessage(player, "Locking " + blockName + ".");
         event.setCancelled(true);
       } else if (cmdStatus == 6) {
